@@ -65,6 +65,8 @@ jobs:
             return PlanResult;
       - name: Plan Result (Post to teams)
         if: steps.plan-comment.outputs.result != ''
+        env:
+          ENVIRONMENT: '${{ github.event.inputs.environment }}'
         run: |
           #! /usr/bin/env bash
 
@@ -115,8 +117,8 @@ jobs:
                                     "value": "${GITHUB_REPOSITORY}"
                                 },
                                 {
-                                    "title": "Envrionment",
-                                    "value": "${{ github.event.inputs.environment }}"
+                                    "title": "Environment",
+                                    "value": "${ENVIRONMENT}"
                                 },
                                 {
                                     "title": "Run Url",
