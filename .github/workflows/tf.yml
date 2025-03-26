@@ -21,10 +21,6 @@ on:
 
 jobs:
   continous_deployment:
-    permissions:
-      id-token: read
-      contents: read
-      pull-requests: read
     runs-on: [ubuntu-latest]
     strategy:
         matrix:
