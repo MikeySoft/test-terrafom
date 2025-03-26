@@ -178,7 +178,7 @@ jobs:
           EOF
           )"
 
-          // Post to URL
+          # Post to URL
           RESPONSE="$(curl --write-out '%{http_code}' --silent -H 'Content-Type: application/json' -d "${TEMPLATE}" "https://prod-206.westeurope.logic.azure.com:443/workflows/d3f12ea8dea040ce8c4b5b834a98c339/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=aQTALZe5UALXtsJDSxQo2rqV_QGJ_bZOAAqf5moqBv8")"
 
           VALID_RESPONSES=(200 202)
