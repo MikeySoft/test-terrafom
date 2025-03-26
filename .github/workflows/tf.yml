@@ -38,6 +38,7 @@ jobs:
         id: plan-comment
         with:
           environment: dev
+          result-encoding: string
           script: |
             const { execSync } = require('child_process');
             const fs = require('fs');
