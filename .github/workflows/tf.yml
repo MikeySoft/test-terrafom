@@ -8,9 +8,9 @@ on:
         default: 'dev'
   pull_request:
     types: [opened, synchronize, reopened]
-  schedule:
-    # * is a special character in YAML so you have to quote this string
-    - cron:  '*/5 * * * *'
+  # schedule:
+  #   # * is a special character in YAML so you have to quote this string
+  #   - cron:  '*/5 * * * *'
   workflow_dispatch:
     inputs:
       environment:
@@ -21,10 +21,6 @@ on:
 
 jobs:
   continous_deployment:
-    permissions:
-      id-token: write
-      contents: read
-      pull-requests: write
     runs-on: [ubuntu-latest]
     strategy:
         matrix:
