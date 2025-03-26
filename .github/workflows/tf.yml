@@ -91,6 +91,19 @@ jobs:
               repo: context.repo.repo,
               body: finalOutput
             });
+
+            // Return the plan result
+            let PlanResult: string = '';
+            if (! planOutput.includes('Your infrastructure matches the configuration')) {
+              const regex = "Plan:.*\n";
+              const matches = planOutput.match(regex);
+
+              if (matches !== null && matches !== undefined && matches.length > 0) {
+                PlanResult = matches[0];
+              }
+            }
+
+            return PlanResult;
       # - name: Update PR
       #   uses: actions/github-script@v7
       #   id: plan-comment
@@ -162,6 +175,6 @@ jobs:
       #       }
 
       #       return PlanResult;
-      # - name: Plan Result (Post to teams)
-      #   if: steps.plan-comment.outputs.result != ''
-      #   run: echo "Posting to teams"
+      - name: Plan Result (Post to teams)
+        if: steps.plan-comment.outputs.result != ''
+        run: echo "Posting to teams"
