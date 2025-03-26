@@ -188,4 +188,4 @@ jobs:
             exit 1
           else
             echo "$RESPONSE"
-          ficurl -H 'Content-Type: application/json' -d '
+          fi
