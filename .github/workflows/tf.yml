@@ -10,7 +10,7 @@ on:
     types: [opened, synchronize, reopened]
   schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '25 9 * * *'
+    - cron:  '*/5 * * * *'
   workflow_dispatch:
     inputs:
       environment:
