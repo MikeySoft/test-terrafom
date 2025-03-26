@@ -115,6 +115,10 @@ jobs:
                                     "value": "${GITHUB_REPOSITORY}"
                                 },
                                 {
+                                    "title": "Envrionment",
+                                    "value": "${{ github.event.inputs.environment }}"
+                                },
+                                {
                                     "title": "Run Url",
                                     "value": "[${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
                                 }
