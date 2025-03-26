@@ -93,7 +93,7 @@ jobs:
             });
 
             // Return the plan result
-            let PlanResult: string = '';
+            let PlanResult = '';
             if (! planOutput.includes('Your infrastructure matches the configuration')) {
               const regex = "Plan:.*\n";
               const matches = planOutput.match(regex);
