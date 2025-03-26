@@ -22,9 +22,9 @@ on:
 jobs:
   continous_deployment:
     permissions:
-      id-token: write
+      id-token: read
       contents: read
-      pull-requests: write
+      pull-requests: read
     runs-on: [ubuntu-latest]
     strategy:
         matrix:
