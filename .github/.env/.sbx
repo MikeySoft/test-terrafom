@@ -1,0 +1,4 @@
+AWS_ACCOUNT=123456
+GET_TOKEN_LAMBDA_ARN=arn:aws:lambda:eu-central-1:123456789:function:cdit-datacloud-snowflake--cditlambda
+SNOWFLAKE_ACCOUNT=alliander-sbx.privatelink
+SNOWFLAKE_USER=123457678
