@@ -24,7 +24,9 @@ jobs:
     runs-on: [ubuntu-latest]
     strategy:
         matrix:
-          environment: ['sbx', 'dev', 'tst', 'acc', 'prd']
+          environment: ['sbx', 'dev']
+    environment:
+      name: ${{ matrix.environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
