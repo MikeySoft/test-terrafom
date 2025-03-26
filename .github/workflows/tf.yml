@@ -37,7 +37,7 @@ jobs:
         uses: actions/github-script@v7
         id: plan-comment
         with:
-          environment: dev
+          # environment: dev
           result-encoding: string
           script: |
             const { execSync } = require('child_process');
