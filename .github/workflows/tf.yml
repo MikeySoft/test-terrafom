@@ -107,4 +107,84 @@ jobs:
             return PlanResult;
       - name: Plan Result (Post to teams)
         if: steps.plan-comment.outputs.result != ''
-        run: echo "Posting to teams"
+        run: |
+          #! /usr/bin/env bash
+
+          TEMPLATE="$(cat << EOF
+          {
+          "type": "message",
+          "attachments": [
+            {
+              "contentType": "application/vnd.microsoft.card.adaptive",
+              "content": {
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "type": "AdaptiveCard",
+                "version": "1.5",
+                "msteams": {
+                  "width": "Full"
+                },
+                "body": [
+                {
+                    "type": "Container",
+                    "id": "container",
+                    "style": "warning",
+                    "showBorder": true,
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Terraform project (PROJECTNAME) is NOT Up to Date",
+                            "weight": "Bolder",
+                            "size": "Large",
+                            "maxLines": 1,
+                            "style": "heading",
+                            "fontType": "Default",
+                            "isSubtle": false,
+                            "color": "Default",
+                            "horizontalAlignment": "Left"
+                        },
+                        {
+                            "type": "TextBlock",
+                            "text": "Plan: 1 to add, 0 to change, 0 to destroy.",
+                            "wrap": true,
+                            "style": "default",
+                            "fontType": "Default"
+                        },
+                        {
+                            "type": "FactSet",
+                            "facts": [
+                                {
+                                    "title": "Repository",
+                                    "value": "${GITHUB_REPOSITORY}"
+                                },
+                                {
+                                    "title": "Run Url",
+                                    "value": "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+                                }
+                                ,
+                                {
+                                    "title": "Run Url",
+                                    "value": "[https://google.com](https://www.google.com)"
+                                }
+                            ],
+                            "spacing": "Small"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+          EOF)"
+
+          // Post to URL
+          RESPONSE="$(curl --write-out '%{http_code}' --silent -H 'Content-Type: application/json' -d "${TEMPLATE}" "https://prod-206.westeurope.logic.azure.com:443/workflows/d3f12ea8dea040ce8c4b5b834a98c339/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=aQTALZe5UALXtsJDSxQo2rqV_QGJ_bZOAAqf5moqBv8")"
+
+          VALID_RESPONSES=(200 202)
+          if ! [ "$(echo "${VALID_RESPONSES[@]}" | grep -o "${RESPONSE}" | wc -w | tr -d ' ')" == "1" ]; then
+            echo "POST to Microsoft Teams failed"
+            echo -e "\n$RESPONSE"
+            exit 1
+          else
+            echo "$RESPONSE"
+          ficurl -H 'Content-Type: application/json' -d '
