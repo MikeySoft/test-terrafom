@@ -24,129 +24,151 @@ jobs:
     runs-on: [ubuntu-latest]
     strategy:
         matrix:
-          environment: ['sbx', 'dev', 'tst', 'acc', 'prd']
+          environment: ['sbx', 'dev']
+    # environment:
+    #   name: ${{ matrix.environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
-      - name: Terraform Init
-        run: terraform init
-      - name: Terraform Validate
-        run: terraform validate
-      - name: Terraform Plan
-        run: terraform plan  -out "tfplan.${{ matrix.environment }}"
-      - run: env |sort
-      - name: Update PR
-        uses: actions/github-script@v7
-        id: plan-comment
-        with:
-          environment: ${{ matrix.environment }}
-          result-encoding: string
-          script: |
-            const { execSync } = require('child_process');
-            const fs = require('fs');
-
-            // Generate the plan output
-            execSync('terraform show "tfplan.${{ matrix.environment }}" > ./plan_output.txt');
-            execSync('cat ./plan_output.txt | sed -e \'s/\\x1b\\[[0-9;]*m//g\' > ./clean_plan_output.txt');
-
-            // Read the cleaned plan output
-            const planOutput = fs.readFileSync('clean_plan_output.txt', 'utf8');
-
-            // Return the plan result
-            let PlanResult = '';
-            if (! planOutput.includes('Your infrastructure matches the configuration')) {
-              const regex = "Plan:.*\n";
-              const matches = planOutput.match(regex);
-
-              if (matches !== null && matches !== undefined && matches.length > 0) {
-                PlanResult = matches[0];
-              }
-            }
-
-            return PlanResult;
-      - name: Plan Result (Post to teams)
-        if: steps.plan-comment.outputs.result != ''
+      - name: Load ENV
         env:
-          ENVIRONMENT: '${{ matrix.environment }}'
+          ENVIRONMENT: ${{ matrix.environment }}
         run: |
-          #! /usr/bin/env bash
+          while read line; do
+            echo "$line" >> $GITHUB_ENV
+          done <.github/.env/.${ENVIRONMENT}
+      # - uses: hashicorp/setup-terraform@v3
+      # - name: Terraform Init
+      #   run: terraform init
+      # - name: Terraform Validate
+      #   run: terraform validate
+      # - name: Terraform Plan
+      #   run: terraform plan  -out "tfplan.${{ matrix.environment }}"
+      - run: |
+          env |sort
 
-          TEMPLATE="$(cat << EOF
-          {
-          "type": "message",
-          "attachments": [
-            {
-              "contentType": "application/vnd.microsoft.card.adaptive",
-              "content": {
-                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                "type": "AdaptiveCard",
-                "version": "1.5",
-                "msteams": {
-                  "width": "Full"
-                },
-                "body": [
-                {
-                    "type": "Container",
-                    "id": "container",
-                    "style": "warning",
-                    "showBorder": true,
-                    "items": [
-                        {
-                            "type": "TextBlock",
-                            "text": "Terraform project (${GITHUB_REPOSITORY}) is NOT Up to Date",
-                            "weight": "Bolder",
-                            "size": "Large",
-                            "maxLines": 1,
-                            "style": "heading",
-                            "fontType": "Default",
-                            "isSubtle": false,
-                            "color": "Default",
-                            "horizontalAlignment": "Left"
-                        },
-                        {
-                            "type": "TextBlock",
-                            "text": "Plan: 1 to add, 0 to change, 0 to destroy.",
-                            "wrap": true,
-                            "style": "default",
-                            "fontType": "Default"
-                        },
-                        {
-                            "type": "FactSet",
-                            "facts": [
-                                {
-                                    "title": "Repository",
-                                    "value": "${GITHUB_REPOSITORY}"
-                                },
-                                {
-                                    "title": "Environment",
-                                    "value": "${ENVIRONMENT}"
-                                },
-                                {
-                                    "title": "Run Url",
-                                    "value": "[${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
-                                }
-                            ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-          EOF
-          )"
+          echo
 
-          # Post to URL
-          echo -n "Posting to Microsoft Teams: "
-          RESPONSE="$(curl --write-out '%{http_code}' --silent -H 'Content-Type: application/json' -d "${TEMPLATE}" "https://prod-206.westeurope.logic.azure.com:443/workflows/d3f12ea8dea040ce8c4b5b834a98c339/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=aQTALZe5UALXtsJDSxQo2rqV_QGJ_bZOAAqf5moqBv8")"
+          echo arn:aws:iam::${{ env.AWS_ACCOUNT}}:role/${{ env.DEPLOYMENT_ROLE_NAME}}
+          echo ${{ env.GET_TOKEN_LAMBDA_ARN}}
 
-          VALID_RESPONSES=(200 202)
-          if ! [ "$(echo "${VALID_RESPONSES[@]}" | grep -o "${RESPONSE}" | wc -w | tr -d ' ')" == "1" ]; then
-            echo "POST to Microsoft Teams failed"
-            echo -e "\n$RESPONSE"
-            exit 1
-          else
-            echo "$RESPONSE"
-          fi
+          echo FROM ENV
+          echo ${AWS_ROLE}
+          echo ${TEST_ARN}
+        env:
+          AWS_ROLE: arn:aws:iam::${{ env.AWS_ACCOUNT }}:role/${{ env.DEPLOYMENT_ROLE_NAME }}
+          TEST_ARN: ${{ env.GET_TOKEN_LAMBDA_ARN }}
+      # - name: Update PR
+      #   uses: actions/github-script@v7
+      #   id: plan-comment
+      #   with:
+      #     environment: ${{ matrix.environment }}
+      #     result-encoding: string
+      #     script: |
+      #       const { execSync } = require('child_process');
+      #       const fs = require('fs');
+
+      #       // Generate the plan output
+      #       execSync('terraform show "tfplan.${{ matrix.environment }}" > ./plan_output.txt');
+      #       execSync('cat ./plan_output.txt | sed -e \'s/\\x1b\\[[0-9;]*m//g\' > ./clean_plan_output.txt');
+
+      #       // Read the cleaned plan output
+      #       const planOutput = fs.readFileSync('clean_plan_output.txt', 'utf8');
+
+      #       // Return the plan result
+      #       let PlanResult = '';
+      #       if (! planOutput.includes('Your infrastructure matches the configuration')) {
+      #         const regex = "Plan:.*\n";
+      #         const matches = planOutput.match(regex);
+
+      #         if (matches !== null && matches !== undefined && matches.length > 0) {
+      #           PlanResult = matches[0];
+      #         }
+      #       }
+
+      #       return PlanResult;
+      # - name: Plan Result (Post to teams)
+      #   if: steps.plan-comment.outputs.result != ''
+      #   env:
+      #     ENVIRONMENT: '${{ matrix.environment }}'
+      #   run: |
+      #     #! /usr/bin/env bash
+
+      #     TEMPLATE="$(cat << EOF
+      #     {
+      #     "type": "message",
+      #     "attachments": [
+      #       {
+      #         "contentType": "application/vnd.microsoft.card.adaptive",
+      #         "content": {
+      #           "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+      #           "type": "AdaptiveCard",
+      #           "version": "1.5",
+      #           "msteams": {
+      #             "width": "Full"
+      #           },
+      #           "body": [
+      #           {
+      #               "type": "Container",
+      #               "id": "container",
+      #               "style": "warning",
+      #               "showBorder": true,
+      #               "items": [
+      #                   {
+      #                       "type": "TextBlock",
+      #                       "text": "Terraform project (${GITHUB_REPOSITORY}) is NOT Up to Date",
+      #                       "weight": "Bolder",
+      #                       "size": "Large",
+      #                       "maxLines": 1,
+      #                       "style": "heading",
+      #                       "fontType": "Default",
+      #                       "isSubtle": false,
+      #                       "color": "Default",
+      #                       "horizontalAlignment": "Left"
+      #                   },
+      #                   {
+      #                       "type": "TextBlock",
+      #                       "text": "Plan: 1 to add, 0 to change, 0 to destroy.",
+      #                       "wrap": true,
+      #                       "style": "default",
+      #                       "fontType": "Default"
+      #                   },
+      #                   {
+      #                       "type": "FactSet",
+      #                       "facts": [
+      #                           {
+      #                               "title": "Repository",
+      #                               "value": "${GITHUB_REPOSITORY}"
+      #                           },
+      #                           {
+      #                               "title": "Environment",
+      #                               "value": "${ENVIRONMENT}"
+      #                           },
+      #                           {
+      #                               "title": "Run Url",
+      #                               "value": "[${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+      #                           }
+      #                       ]
+      #                   }
+      #                 ]
+      #               }
+      #             ]
+      #           }
+      #         }
+      #       ]
+      #     }
+      #     EOF
+      #     )"
+
+      #     # Post to URL
+      #     echo -n "Posting to Microsoft Teams: "
+      #     RESPONSE="$(curl --write-out '%{http_code}' --silent -H 'Content-Type: application/json' -d "${TEMPLATE}" "https://prod-206.westeurope.logic.azure.com:443/workflows/d3f12ea8dea040ce8c4b5b834a98c339/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=aQTALZe5UALXtsJDSxQo2rqV_QGJ_bZOAAqf5moqBv8")"
+
+      #     VALID_RESPONSES=(200 202)
+      #     if ! [ "$(echo "${VALID_RESPONSES[@]}" | grep -o "${RESPONSE}" | wc -w | tr -d ' ')" == "1" ]; then
+      #       echo "POST to Microsoft Teams failed"
+      #       echo -e "\n$RESPONSE"
+      #       exit 1
+      #     else
+      #       echo "$RESPONSE"
+      #     fi
