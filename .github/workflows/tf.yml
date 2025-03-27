@@ -44,7 +44,12 @@ jobs:
       #   run: terraform validate
       # - name: Terraform Plan
       #   run: terraform plan  -out "tfplan.${{ matrix.environment }}"
-      - run: env |sort
+      - run: |
+          env |sort
+
+          echo
+
+          echo arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/${{ vars.DEPLOYMENT_ROLE_NAME }}
       # - name: Update PR
       #   uses: actions/github-script@v7
       #   id: plan-comment
