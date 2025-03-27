@@ -49,7 +49,7 @@ jobs:
 
           echo
 
-          echo arn:aws:iam::${AWS_ACCOUNT}:role/${DEPLOYMENT_ROLE_NAME}  ${vars.GET_TOKEN_LAMBDA_ARN}
+          echo arn:aws:iam::${AWS_ACCOUNT}:role/${DEPLOYMENT_ROLE_NAME}  ${GET_TOKEN_LAMBDA_ARN}
       # - name: Update PR
       #   uses: actions/github-script@v7
       #   id: plan-comment
