@@ -1,4 +1,6 @@
 AWS_ACCOUNT=580920749827
+DEPLOYMENT_ROLE_NAME=gh-actions-cdit-snowflake-setup
 GET_TOKEN_LAMBDA_ARN=arn:aws:lambda:eu-central-1:580920749827:function:cdit-datacloud-snowflake--cditlambdaGetOauthTokeng-6hUoJYrJIhAA
 SNOWFLAKE_ACCOUNT=alliander-dev.privatelink
+SNOWFLAKE_ROLE=a_snowflake_setup
 SNOWFLAKE_USER=2ea5504c-26dc-4732-878b-6513083b7d69
